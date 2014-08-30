@@ -248,6 +248,18 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
     /* Where to start searching for a container that swallows the new one? */
     Con *search_at = croot;
 
+    bool haswm_type_ontop = false;
+    bool haswm_type_dock = false;
+    if (xcb_reply_contains_atom(state_reply, A__NET_WM_STATE_STAYS_ON_TOP)) {
+        /* this is a window like for example a popup */
+        haswm_type_ontop = true;
+        if (xcb_reply_contains_atom(type_reply, A__NET_WM_WINDOW_TYPE_DOCK)) {
+            /* kde _NET_WM_STATE_STAYS_ON_TOP often are
+               _NET_WM_WINDOW_TYPE_DOCK while in reality they dont behave as docks */
+           haswm_type_dock = true;
+        }
+    }
+
     /* Ignore DESKTOP windows and move them to the bottom of the stack. */
     if (xcb_reply_contains_atom(type_reply, A__NET_WM_WINDOW_TYPE_DESKTOP)) {
         LOG("Ignoring window of type desktop\n");
@@ -538,6 +550,18 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
 
     if (config.popup_during_fullscreen == PDF_ALL && want_floating && fs != NULL) {
         set_focus = true;
+    }
+
+
+    if (haswm_type_ontop) {
+        /* we always want to _NET_WM_STATE_STAYS_ON_TOP be floating with no border */
+        nc->border_style = BS_NONE;
+        nc->border_width = 0;
+        /* pass false otherwise floating_enable will reset our border to the default
+           from the config */
+        floating_enable(nc, false);
+        /* we dont need to try to float this again */
+        want_floating = false;
     }
 
     if (want_floating) {
