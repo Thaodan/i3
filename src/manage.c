@@ -248,6 +248,12 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
     /* Where to start searching for a container that swallows the new one? */
     Con *search_at = croot;
 
+    bool haswm_type_ontop = false;
+    if (xcb_reply_contains_atom(state_reply, A__NET_WM_STATE_STAYS_ON_TOP)) {
+        /* this is a window like for example a popup */
+        haswm_type_ontop = true;
+    }
+
     if (xcb_reply_contains_atom(type_reply, A__NET_WM_WINDOW_TYPE_DOCK)) {
         LOG("This window is of type dock\n");
         Output *output = get_output_containing(geom->x, geom->y);
@@ -521,6 +527,17 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
      * here because it’s used for dock clients. */
     if (nc->geometry.width == 0) {
         nc->geometry = (Rect){geom->x, geom->y, geom->width, geom->height};
+    }
+
+    if (haswm_type_ontop) {
+        /* we always want to _NET_WM_STATE_STAYS_ON_TOP be floating with no border */
+        nc->border_style = BS_NONE;
+        nc->border_width = 0;
+        /* pass false otherwise floating_enable will reset our border to the default
+           from the config */
+        floating_enable(nc, false);
+        /* we dont need to try to float this again */
+        want_floating = false;
     }
 
     if (want_floating) {
