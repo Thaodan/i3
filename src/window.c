@@ -622,3 +622,27 @@ void window_update_icon(i3Window *win, xcb_get_property_reply_t *prop) {
 
     FREE(prop);
 }
+
+void window_update_wm_pid(i3Window *win, xcb_get_property_reply_t *prop) {
+    DLOG("MESSAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+
+    if (!prop && xcb_get_property_value_length(prop) == 0) {
+        DLOG("_NET_WM_PID is not set\n");
+        FREE(prop);
+        DLOG("WM pid = -1\n");
+        win->pid = -1;
+        return;
+    }
+    uint32_t *prop_value = (uint32_t *)xcb_get_property_value(prop);
+    DLOG("wm pid = %i\n", *prop_value);
+    printf("WM_NAME is %i\n", prop->type);
+
+    if(prop_value) {
+        win->pid = (pid_t)prop_value;
+    }
+    else {
+        DLOG("WM pid = -1\n");
+        win->pid = -1;
+    }
+    FREE(prop);
+}

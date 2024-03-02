@@ -312,6 +312,7 @@ xcb_xinerama_dep = dependency('xcb-xinerama', method: 'pkg-config')
 xcb_randr_dep = dependency('xcb-randr', method: 'pkg-config')
 xcb_shape_dep = dependency('xcb-shape', method: 'pkg-config')
 xcb_util_dep = dependency('xcb-util', method: 'pkg-config')
+xcb_util_ewmh = dependency('xcb-ewmh', method: 'pkg-config')
 xcb_util_cursor_dep = dependency('xcb-cursor', method: 'pkg-config')
 xcb_util_keysyms_dep = dependency('xcb-keysyms', method: 'pkg-config')
 xcb_util_wm_dep = dependency('xcb-icccm', method: 'pkg-config')
@@ -471,6 +472,7 @@ common_deps = [
   xcb_randr_dep,
   xcb_shape_dep,
   xcb_util_dep,
+  xcb_util_ewmh,
   xcb_util_cursor_dep,
   xcb_util_keysyms_dep,
   xcb_util_wm_dep,

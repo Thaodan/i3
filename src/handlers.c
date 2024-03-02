@@ -1291,6 +1291,12 @@ static bool handle_windowicon_change(Con *con, xcb_get_property_reply_t *prop) {
     return true;
 }
 
+static bool handle_wm_pid_change(Con *con, xcb_get_property_reply_t *prop) {
+    window_update_wm_pid(con->window, prop);
+
+    return true;
+}
+
 /* Returns false if the event could not be processed (e.g. the window could not
  * be found), true otherwise */
 typedef bool (*cb_property_handler_t)(Con *con, xcb_get_property_reply_t *property);
@@ -1315,7 +1321,8 @@ static struct property_handler_t property_handlers[] = {
     {0, UINT_MAX, handle_i3_floating},
     {0, 128, handle_machine_change},
     {0, 5 * sizeof(uint64_t), handle_motif_hints_change},
-    {0, UINT_MAX, handle_windowicon_change}};
+    {0, UINT_MAX, handle_windowicon_change},
+    {0, UINT_MAX, handle_wm_pid_change}};
 #define NUM_HANDLERS (sizeof(property_handlers) / sizeof(struct property_handler_t))
 
 /*
@@ -1340,6 +1347,7 @@ void property_handlers_init(void) {
     property_handlers[11].atom = XCB_ATOM_WM_CLIENT_MACHINE;
     property_handlers[12].atom = A__MOTIF_WM_HINTS;
     property_handlers[13].atom = A__NET_WM_ICON;
+    property_handlers[14].atom = A__NET_WM_PID;
 }
 
 static void property_notify(uint8_t state, xcb_window_t window, xcb_atom_t atom) {

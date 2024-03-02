@@ -113,6 +113,12 @@ bool update_if_necessary(uint32_t *destination, const uint32_t new_value);
 void exec_i3_utility(char *name, char *argv[]);
 
 /**
+ * Return getcwd() of PID
+ *
+ */
+char *getcwd_pid(pid_t pid);
+
+/**
  * Checks if the given path exists by calling stat().
  *
  */

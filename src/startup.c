@@ -131,6 +131,11 @@ void startup_sequence_delete(struct Startup_Sequence *sequence) {
  */
 void start_application(const char *command, bool no_startup_id) {
     SnLauncherContext *context = NULL;
+    char *pid_cwd = NULL;
+
+    if (focused->window && focused->window->pid != -1) {
+        pid_cwd = getcwd_pid(focused->window->pid);
+    }
 
     if (!no_startup_id) {
         /* Create a startup notification context to monitor the progress of this
@@ -191,8 +196,16 @@ void start_application(const char *command, bool no_startup_id) {
             sn_launcher_context_setup_child_process(context);
         setenv("I3SOCK", current_socketpath, 1);
 
+        if (pid_cwd) {
+            chdir(pid_cwd);
+        }
+
         execl(_PATH_BSHELL, _PATH_BSHELL, "-c", command, NULL);
         /* not reached */
+    }
+
+    if (pid_cwd) {
+        free(pid_cwd);
     }
 
     if (!no_startup_id) {

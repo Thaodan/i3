@@ -444,6 +444,8 @@ struct Window {
     /** The name of the window. */
     i3String *name;
 
+    pid_t pid;
+
     /** The WM_WINDOW_ROLE of this window (for example, the pidgin buddy window
      * sets "buddy list"). Useful to match specific windows in assignments or
      * for_window. */
