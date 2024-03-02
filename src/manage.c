@@ -120,7 +120,7 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
         class_cookie, leader_cookie, transient_cookie,
         role_cookie, startup_id_cookie, wm_hints_cookie,
         wm_normal_hints_cookie, motif_wm_hints_cookie, wm_user_time_cookie, wm_desktop_cookie,
-        wm_machine_cookie;
+        wm_machine_cookie, wm_pid_cookie;
 
     xcb_get_property_cookie_t wm_icon_cookie;
 
@@ -178,7 +178,7 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
         goto out;
     }
 
-#define GET_PROPERTY(atom, len) xcb_get_property(conn, false, window, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, len)
+#define GET_PROPERTY(atom, len)  xcb_get_property(conn, false, window, atom, XCB_GET_PROPERTY_TYPE_ANY, 0, len)
 
     wm_type_cookie = GET_PROPERTY(A__NET_WM_WINDOW_TYPE, UINT32_MAX);
     strut_cookie = GET_PROPERTY(A__NET_WM_STRUT_PARTIAL, UINT32_MAX);
@@ -197,6 +197,7 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
     wm_desktop_cookie = GET_PROPERTY(A__NET_WM_DESKTOP, UINT32_MAX);
     wm_machine_cookie = GET_PROPERTY(XCB_ATOM_WM_CLIENT_MACHINE, UINT32_MAX);
     wm_icon_cookie = GET_PROPERTY(A__NET_WM_ICON, UINT32_MAX);
+    wm_pid_cookie = GET_PROPERTY(A__NET_WM_PID, UINT32_MAX);
 
     i3Window *cwindow = scalloc(1, sizeof(i3Window));
     cwindow->id = window;
@@ -221,6 +222,7 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
     bool has_mwm_hints = window_update_motif_hints(cwindow, xcb_get_property_reply(conn, motif_wm_hints_cookie, NULL), &motif_border_style);
     window_update_normal_hints(cwindow, xcb_get_property_reply(conn, wm_normal_hints_cookie, NULL), geom);
     window_update_machine(cwindow, xcb_get_property_reply(conn, wm_machine_cookie, NULL));
+    window_update_wm_pid(cwindow, xcb_get_property_reply(conn, wm_pid_cookie, NULL));
     xcb_get_property_reply_t *type_reply = xcb_get_property_reply(conn, wm_type_cookie, NULL);
     xcb_get_property_reply_t *state_reply = xcb_get_property_reply(conn, state_cookie, NULL);
 
@@ -238,6 +240,9 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
         cwindow->wm_desktop = (int32_t)wm_desktops[0];
     }
     FREE(wm_desktop_reply);
+
+
+
 
     /* check if the window needs WM_TAKE_FOCUS */
     cwindow->needs_take_focus = window_supports_protocol(cwindow->id, A_WM_TAKE_FOCUS);
@@ -664,6 +669,7 @@ void manage_window(xcb_window_t window, xcb_get_window_attributes_cookie_t cooki
     }
 
     tree_render();
+
 
     /* Destroy the old frame if we had to reframe the container. This needs to be done
      * after rendering in order to prevent the background from flickering in its place. */

@@ -1331,6 +1331,7 @@ static bool handle_windowicon_change(Con *con, xcb_get_property_reply_t *prop) {
     return true;
 }
 
+
 /* Returns false if the event could not be processed (e.g. the window could not
  * be found), true otherwise */
 typedef bool (*cb_property_handler_t)(Con *con, xcb_get_property_reply_t *property);

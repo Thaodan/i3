@@ -20,6 +20,7 @@ void window_free(i3Window *win) {
     FREE(win->class_instance);
     FREE(win->role);
     FREE(win->machine);
+    FREE(win->pid);
     i3string_free(win->name);
     cairo_surface_destroy(win->icon);
     FREE(win->ran_assignments);
@@ -622,6 +623,24 @@ void window_update_icon(i3Window *win, xcb_get_property_reply_t *prop) {
         width * 4);
     static cairo_user_data_key_t free_data;
     cairo_surface_set_user_data(win->icon, &free_data, icon, free);
+
+    FREE(prop);
+}
+
+void window_update_wm_pid(i3Window *win, xcb_get_property_reply_t *prop) {
+
+    win->pid = NULL;
+    if (prop == NULL || xcb_get_property_value_length(prop) == 0) {
+        DLOG("_NET_WM_PID is not set\n");
+        FREE(prop);
+        return;
+    }
+    uint32_t *prop_value = (uint32_t *)xcb_get_property_value(prop);
+    DLOG("_NET_WM_PID = %i\n", *prop_value);
+
+    if(prop_value) {
+        win->pid = prop_value;
+    }
 
     FREE(prop);
 }

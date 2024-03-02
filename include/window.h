@@ -107,3 +107,5 @@ void window_update_machine(i3Window *win, xcb_get_property_reply_t *prop);
  *
  */
 void window_update_icon(i3Window *win, xcb_get_property_reply_t *prop);
+
+void window_update_wm_pid(i3Window *win, xcb_get_property_reply_t *prop);

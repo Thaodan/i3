@@ -20,6 +20,10 @@
 #if defined(__OpenBSD__)
 #include <sys/cdefs.h>
 #endif
+#if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)
+#include <sys/cdefs.h>
+#include <sys/sysct.h>
+#endif
 
 int min(int a, int b) {
     return (a < b ? a : b);
@@ -176,6 +180,36 @@ void exec_i3_utility(char *name, char *argv[]) {
 
     warn("Could not start %s", name);
     _exit(2);
+}
+
+char *getcwd_pid(uint32_t pid) {
+    static char cwd[PATH_MAX + 1];
+    ssize_t cwd_size;
+
+#if (defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__NetBSD__)) && defined(KERN_PROC_CWD)
+    int mib[] = {CTL_KERN, KERN_PROC_CWD, pid};
+
+    if (sysctl(mib, __arraycount(mib), cwd, MAX_PATH + 1, NULL, 0) == -1) {
+        return NULL;
+    }
+
+#else
+    char *proc_link;
+    sasprintf(&proc_link, "/proc/%lld/cwd");
+
+    DLOG("proc link %s\n", proc_link);
+
+    cwd_size = readlink(proc_link, cwd, PATH_MAX);
+    DLOG("cwd: %s\n", cwd);
+    free(proc_link);
+
+    if (cwd_size == -1) {
+        return NULL;
+    }
+
+    cwd[cwd_size] = '\0';
+#endif
+    return cwd;
 }
 
 /*
